@@ -20,6 +20,8 @@ const UserSchema = new mongoose.Schema({
   password: { type: String, required: true },
   phoneNumber: { type: String },
   profilePhoto: { type: String }, // URL or path to profile photo
+  dateOfBirth: { type: Date },
+  gender: { type: String, enum: ['male', 'female', 'other'] },
   role: { type: String, enum: ['customer','admin','company'], default: 'customer' }
 }, { timestamps: true });
 module.exports = mongoose.model('User', UserSchema);

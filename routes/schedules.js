@@ -60,12 +60,17 @@ router.post('/', auth, async (req,res)=>{
       return res.status(403).json({ message: 'Bus not found or does not belong to your company' });
     }
     
+    // Use provided seatsLeft or default to bus capacity
+    const seatsLeft = req.body.seatsLeft !== undefined && req.body.seatsLeft !== null 
+      ? parseInt(req.body.seatsLeft) 
+      : bus.seats;
+    
     const schedule = new Schedule({
       route: routeId,
       bus: busId,
       departure: new Date(departure),
       arrival: new Date(arrival),
-      seatsLeft: bus.seats
+      seatsLeft: seatsLeft
     });
     await schedule.save();
     await schedule.populate('route bus');
@@ -93,9 +98,14 @@ router.put('/:id', auth, async (req,res)=>{
       return res.status(403).json({ message: 'Schedule does not belong to your company' });
     }
     
-    Object.assign(schedule, req.body);
     if (req.body.departure) schedule.departure = new Date(req.body.departure);
     if (req.body.arrival) schedule.arrival = new Date(req.body.arrival);
+    if (req.body.seatsLeft !== undefined && req.body.seatsLeft !== null) {
+      schedule.seatsLeft = parseInt(req.body.seatsLeft);
+    }
+    // Update other fields
+    if (req.body.routeId) schedule.route = req.body.routeId;
+    if (req.body.busId) schedule.bus = req.body.busId;
     await schedule.save();
     await schedule.populate('route bus');
     res.json(schedule);

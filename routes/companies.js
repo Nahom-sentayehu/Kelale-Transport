@@ -176,4 +176,77 @@ router.post('/', logoUpload.single('logo'), handleMulterError, auth, async (req,
   }
 });
 
+// update company logo (company only)
+router.put('/my-company/logo', auth, logoUpload.single('logo'), handleMulterError, async (req, res) => {
+  try {
+    if (!req.user || !req.user.id) {
+      if (req.file) {
+        fs.unlinkSync(req.file.path);
+      }
+      return res.status(401).json({ message: 'Authentication required' });
+    }
+
+    const company = await Company.findOne({ user: req.user.id });
+    if (!company) {
+      if (req.file) {
+        fs.unlinkSync(req.file.path);
+      }
+      return res.status(404).json({ message: 'Company not found' });
+    }
+
+    // Delete old logo if exists
+    if (company.logo && req.file) {
+      const oldLogoPath = company.logo.replace('/uploads/', 'uploads/');
+      try {
+        if (fs.existsSync(oldLogoPath)) {
+          fs.unlinkSync(oldLogoPath);
+        }
+      } catch (unlinkErr) {
+        console.error('Error deleting old logo:', unlinkErr);
+      }
+    }
+
+    // Handle new logo upload
+    if (req.file) {
+      company.logo = `/uploads/company-logos/${req.file.filename}`;
+      await company.save();
+    }
+
+    res.json(company);
+  } catch (err) {
+    if (req.file) {
+      try {
+        fs.unlinkSync(req.file.path);
+      } catch (unlinkErr) {
+        console.error('Error deleting uploaded file:', unlinkErr);
+      }
+    }
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// update company info (company only)
+router.put('/my-company', auth, async (req, res) => {
+  try {
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ message: 'Authentication required' });
+    }
+
+    const company = await Company.findOne({ user: req.user.id });
+    if (!company) {
+      return res.status(404).json({ message: 'Company not found' });
+    }
+
+    const { name, description, contact } = req.body;
+    if (name) company.name = name;
+    if (description !== undefined) company.description = description;
+    if (contact !== undefined) company.contact = contact;
+
+    await company.save();
+    res.json(company);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 module.exports = router;

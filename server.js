@@ -32,6 +32,7 @@ const bookingRoutes = require("./routes/bookingRoutes");
 const companyRoutes = require("./routes/companies");
 const routeRoutes = require("./routes");
 const scheduleRoutes = require("./routes/schedules");
+const ratingRoutes = require("./routes/ratings");
 
 // ---------- Route Handlers ----------
 app.use("/api/users", userRoutes);
@@ -41,6 +42,7 @@ app.use("/api/bookings", bookingRoutes);
 app.use("/api/companies", companyRoutes);
 app.use("/api/routes", routeRoutes);
 app.use("/api/schedules", scheduleRoutes);
+app.use("/api/ratings", ratingRoutes);
 
 // ---------- Fix: API root message ----------
 app.get("/api", (req, res) => {
