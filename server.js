@@ -62,6 +62,7 @@ app.use((err, req, res, next) => {
 
 // ---------- Start Server ----------
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
+// CRITICAL FIX: Add '0.0.0.0' as the host for Render compatibility.
+app.listen(PORT, '0.0.0.0', () => { 
   console.log(`Server running on port ${PORT}`);
 });
