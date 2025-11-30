@@ -6,21 +6,13 @@ require("dotenv").config();
 const app = express();
 
 // ---------- Middlewares ----------
-app.use(express.json({ limit: "10mb" }));
-app.use(express.urlencoded({ extended: true, limit: "10mb" }));
+app.use(express.json());
+app.use(cors());
 
-app.use(cors({
-  origin: [
-    "https://kelale-frontend1.onrender.com",
-    "http://localhost:5173"
-  ],
-  credentials: true
-}));
+// Serve uploaded files
+app.use("/uploads", express.static("uploads"));
 
-// Serve static files
-app.use('/uploads', express.static('uploads'));
-
-// Request logger
+// Request logger (optional)
 app.use((req, res, next) => {
   console.log(`${req.method} ${req.url}`);
   next();
@@ -28,12 +20,10 @@ app.use((req, res, next) => {
 
 // ---------- MongoDB Connection ----------
 mongoose
-  .connect(process.env.MONGO_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true
-  })
+  .connect(process.env.MONGO_URI || "mongodb://127.0.0.1:27017/kelale")
   .then(() => console.log("MongoDB connected"))
   .catch((err) => console.error("MongoDB error:", err));
+
 
 // ---------- Import Routes ----------
 const userRoutes = require("./routes/userRoutes");
@@ -41,11 +31,14 @@ const authRoutes = require("./routes/authRoutes");
 const busRoutes = require("./routes/buses");
 const bookingRoutes = require("./routes/bookingRoutes");
 const companyRoutes = require("./routes/companies");
-const routeRoutes = require("./routes/routes");   // 🔥 FIXED
+
+// FIXED: Use routes/index.js (your real route file)
+const routeRoutes = require("./routes");
+
 const scheduleRoutes = require("./routes/schedules");
 const ratingRoutes = require("./routes/ratings");
 
-// ---------- Route Handlers ----------
+// ---------- API Routes ----------
 app.use("/api/users", userRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/buses", busRoutes);
@@ -55,11 +48,12 @@ app.use("/api/routes", routeRoutes);
 app.use("/api/schedules", scheduleRoutes);
 app.use("/api/ratings", ratingRoutes);
 
-// ---------- Root ----------
+// ---------- API Test Endpoint ----------
 app.get("/api", (req, res) => {
   res.json({ message: "Kelale Transport API is running 🚍" });
 });
 
+// ---------- Root Path ----------
 app.get("/", (req, res) => {
   res.send("Kelale Transport Backend API is running.");
 });
@@ -72,6 +66,8 @@ app.use((err, req, res, next) => {
 
 // ---------- Start Server ----------
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, '0.0.0.0', () => {
+
+// Important for Render deployment
+app.listen(PORT, "0.0.0.0", () => {
   console.log(`Server running on port ${PORT}`);
 });
